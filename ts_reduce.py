@@ -168,8 +168,20 @@ class Reductor(object):
             serialized = serialize(self.unit_server)
             with open(self.out_file, 'wa') as f:
                 json.dump(serialized, f, indent=4)
+            
+            (html_file, ext) = os.path.splitext(self.out_file)
+            html = """<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<style> .link {fill: none; stroke: #ccc; stroke-width: 4.5px;} </style></head><body><div id="viz"></div>
+<script type="text/javascript">var treeData = """ + json.dumps(serialized) + """;
+var vis = d3.select("#viz").append("svg:svg").attr("width", 600).attr("height", 800).append("svg:g").attr("transform", "translate(40, 0)"); var tree = d3.layout.tree().size([760,540]); var diagonal = d3.svg.diagonal().projection(function(d) { return [d.y, d.x]; }); var nodes = tree.nodes(treeData); var link = vis.selectAll("pathlink").data(tree.links(nodes)).enter().append("svg:path").attr("class", "link").attr("d", diagonal); var node = vis.selectAll("g.node").data(nodes).enter().append("svg:g").attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; }) 
+node.append("svg:circle").attr("r", 4.5); node.append("svg:text").attr("dx", function(d) { return d.children ? -8 : 8; }).attr("dy", 3).attr("text-anchor", function(d) { return d.children ? "end" : "start"; }).text(function(d) { return d.id + "(" + d.cost+ "/" + d.period + ")"; });
+</script></body></html>
+"""
+            with open(html_file+'.html', 'wa') as f:
+                f.write(html)
         else:
-            print 'Error: no unit-server'
+            print 'Error: no unit-server'    
         
     def _pack(self, taskset, cpus):
         self.misfits = 0
